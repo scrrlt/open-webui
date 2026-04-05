@@ -40,6 +40,8 @@ class AuditLogEntry:
     audit_level: str
     verb: str
     request_uri: str
+    request_id: Optional[str] = None
+    correlation_id: Optional[str] = None
     user_agent: Optional[str] = None
     source_ip: Optional[str] = None
     # `Request` audit level properties
@@ -118,6 +120,8 @@ class AuditLoggingMiddleware:
     """
 
     AUDITED_METHODS = {'PUT', 'PATCH', 'DELETE', 'POST'}
+    REQUEST_ID_HEADER = 'x-request-id'
+    CORRELATION_ID_HEADER = 'x-correlation-id'
 
     def __init__(
         self,
@@ -270,6 +274,8 @@ class AuditLoggingMiddleware:
                 audit_level=self.audit_level.value,
                 verb=request.method,
                 request_uri=str(request.url),
+                request_id=request.headers.get(self.REQUEST_ID_HEADER),
+                correlation_id=request.headers.get(self.CORRELATION_ID_HEADER),
                 response_status_code=context.metadata.get('response_status_code', None),
                 source_ip=request.client.host if request.client else None,
                 user_agent=request.headers.get('user-agent'),
@@ -278,5 +284,9 @@ class AuditLoggingMiddleware:
             )
 
             self.audit_logger.write(entry)
-        except Exception as e:
-            logger.error(f'Failed to log audit entry: {str(e)}')
+        except Exception:
+            logger.exception(
+                'Failed to log audit entry for {method} {path}',
+                method=request.method,
+                path=request.url.path,
+            )

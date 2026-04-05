@@ -125,6 +125,8 @@ def file_format(record: 'Record'):
         'audit_level': record['extra'].get('audit_level', ''),
         'verb': record['extra'].get('verb', ''),
         'request_uri': record['extra'].get('request_uri', ''),
+        'request_id': record['extra'].get('request_id', ''),
+        'correlation_id': record['extra'].get('correlation_id', ''),
         'response_status_code': record['extra'].get('response_status_code', 0),
         'source_ip': record['extra'].get('source_ip', ''),
         'user_agent': record['extra'].get('user_agent', ''),
@@ -174,8 +176,8 @@ def start_logger():
                 format=file_format,
                 filter=lambda record: record['extra'].get('auditable') is True,
             )
-        except Exception as e:
-            logger.error(f'Failed to initialize audit log file handler: {str(e)}')
+        except Exception:
+            logger.exception('Failed to initialize audit log file handler')
 
     logging.basicConfig(handlers=[InterceptHandler()], level=GLOBAL_LOG_LEVEL, force=True)
 

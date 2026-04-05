@@ -1,5 +1,4 @@
 import logging
-import traceback
 from typing import Collection, Union
 
 from aiohttp import (
@@ -94,7 +93,7 @@ def redis_request_hook(span: Span, instance: Union[Redis | RedisCluster], args, 
             }
         )
     except Exception:  # pylint: disable=W0718
-        logger.error(traceback.format_exc())
+        logger.exception('Failed to set Redis span attributes')
 
 
 def httpx_request_hook(span: Span, request: RequestInfo):
